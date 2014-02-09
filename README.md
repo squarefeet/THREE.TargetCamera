@@ -28,16 +28,16 @@ Options
 =======
 In addition to the usual THREE.PerspectiveCamera settings, the following are also available:
 
-`target`: An instance (in some form or another) of a THREE.Object3D
+**`target`**: An instance (in some form or another) of a THREE.Object3D
 
-`mode`: `"first"` or `"third"`. Whether the camera should be in first- or third-person mode.
+**`mode`**: `"first"` or `"third"`. Whether the camera should be in first- or third-person mode.
 
-`firstPersonStiffness`: A number between `0` and `1`. 
+**`firstPersonStiffness`**: A number between `0` and `1`. 
 
-`thirdPersonStiffness`: A number between `0` and `1`. 
+**`thirdPersonStiffness`**: A number between `0` and `1`. 
 
-`modeTransitionStiffness`: A number between `0` and `1`. Used when the `mode` is switched.
+**`modeTransitionStiffness`**: A number between `0` and `1`. Used when the `mode` is switched.
 
-`firstPersonPosition`: The chase position to aim for when in first-person mode.
+**`firstPersonPosition`**: An instance of `THREE.Vector3`. The chase position to aim for when in first-person mode.
 
-`thirdPersonPosition`: The chase position to aim for when in third-person mode.
+**`thirdPersonPosition`**: An instance of `THREE.Vector3`. The chase position to aim for when in third-person mode.
