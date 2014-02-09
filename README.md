@@ -50,7 +50,7 @@ In addition to the usual THREE.PerspectiveCamera settings, the following are als
 
 Building
 ========
-This project uses [Grunt](http://gruntjs.com/) to create the distributions, one dev build (not minimized) and one production build (minimized). If you make changes and want to build it, follow these steps:
+This project uses [Grunt](http://gruntjs.com/) to create the minimized build. If you make changes and want to build it, follow these steps:
 
 If you don't have grunt installed, first make sure you've got [NodeJS](http://nodejs.org/) and NPM installed, then install Grunt CLI. You might have to do this as root:
 
