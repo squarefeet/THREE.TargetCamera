@@ -6,6 +6,8 @@ Each `mode` (first- or third-person) has a `stiffness` setting. A low stiffness 
 
 Each `mode` also has a position associated with it. This is where the camera will try to stick to when following the target.A typical setting for the third-person mode would be behind and slightly above the target.
 
+Since this camera is a moving object, it needs to be updated on a per-frame basis. To to this, call the `update()` method from within your render loop.
+
 
 Usage
 =====
@@ -22,6 +24,9 @@ var camera = new THREE.TargetCamera( {
     target: myTargetObject
 } );
 
+
+// In your render loop:
+camera.update();
 ```
 
 Options
