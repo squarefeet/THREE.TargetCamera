@@ -41,11 +41,17 @@ After creating the camera, add a target for the camera to track:
 Options
 =======
 **`name`**: *String.* A unique identifier for the target.
+
 **`targetObject`**: *THREE.Object3D.* Any instance of a `THREE.Object3D`.
+
 **`cameraPosition`**: *THREE.Vector3.* The camera position. When the camera isn't fixed, this property is relative to the target object. When fixed, it's just a normal position vector.
+
 **`cameraRotation`**: *THREE.Quaternion | THREE.Euler | undefined.* An optional parameter to describe the rotation of the camera. This rotation is added to the camera *before* any other movement. 
+
 **`fixed`**: *Boolean.* Whether this camera is fixed, or whether it should "chase" the target.
+
 **`stiffness`**: *Number, > 0 and <= 1.* How much should the camera "stick" to the target's position and rotation. A lower number gives more fluid movement.
+
 **`matchRotation`**: *Boolean.* Whether to match the rotation of the target object when the camera is not fixed. 
 
 
