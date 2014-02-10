@@ -111,7 +111,7 @@ THREE.TargetCamera.prototype.setTarget = function( name ) {
     }
 };
 
-THREE.TargetCamera.prototype.update = function() {
+THREE.TargetCamera.prototype.update = function( dt ) {
     var target = this.targets[ this.currentTargetName ],
         ideal = this._idealObject;
 
