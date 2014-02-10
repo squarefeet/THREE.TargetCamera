@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <link rel="stylesheet" type="text/css" href="css/main.css">
+    </head>
+    <body>
+        <p class="instructions">Press any key to change camera target. Current target is rendered as wireframe.</p>
+
+        <div class="targetDetails">
+            <p class="name"></p>
+            <p class="position"></p>
+            <p class="type"></p>
+            <p class="stiffness"></p>
+            <p class="rotation"></p>
+        </div>
+
+        <script type="text/javascript" src="js/vendor/THREE-r65.min.js"></script>
+        <script type="text/javascript" src="js/vendor/Stats.min.js"></script>
+        <script type="text/javascript" src="../src/THREE.TargetCamera.js"></script>
+        <script type="text/javascript" src="js/defaultScene.js"></script>
+
+        <script type="text/javascript">
+            var numBoxes = 10,
+                boxesRadius = 10,
+                angleIncrement = (Math.PI * 2) / numBoxes,
+                boxes = [];
+
+            function createBoxes() {
+                for( var i = 0, box, settings; i < numBoxes; ++i ) {
+                    box = new THREE.Mesh(
+                        new THREE.CubeGeometry( 10, 10, 10 ),
+                        new THREE.MeshPhongMaterial( { 
+                            color: new THREE.Color().setRGB( 
+                                0.5 + Math.random() * 0.5, 
+                                0.5 + Math.random() * 0.5, 
+                                0.5 + Math.random() * 0.5 
+                            )
+                        } )
+                    );
+
+                    // Give the box a not-so-random position
+                    box.position.set(
+                        Math.cos( angleIncrement * i ) * boxesRadius | 0,
+                        0,
+                        Math.sin( angleIncrement * i ) * boxesRadius | 0
+                    );
+
+                    // Set it's initial rotation
+                    box.rotation.set( 0, angleIncrement * i, 0 );
+
+                    
+                    // Create different camera settings for each box.
+                    if( i % 2 === 0 ) {
+                        settings = {
+                            name: 'box-' + i,
+                            targetObject: box,
+                            cameraPosition: new THREE.Vector3(
+                                100 - Math.random() * 200 | 0, 
+                                Math.random() * 200 | 0, 
+                                50 + Math.random() * 50 | 0
+                            ),
+                            fixed: true,
+                            matchRotation: !!(i % 3)
+                        };
+                    }
+                    else {
+                        settings = {
+                            name: 'box-' + i,
+                            targetObject: box,
+                            cameraPosition: new THREE.Vector3( 0, 30, 50 ),
+                            fixed: false,
+                            stiffness: i > 0 ? 0.5 / i : 0.01,
+                            matchRotation: !!(i % 3)
+                        };
+                    }
+
+                    // Add the box as a target object for the TargetCamera.
+                    camera.addTarget( settings );
+
+                    scene.add( box );
+                    boxes[ i ] = box;
+                }
+
+                var floor = new THREE.Mesh(
+                    new THREE.CubeGeometry( 2000, 2, 2000 ),
+                    new THREE.MeshPhongMaterial( { 
+                        color: 0x333333
+                    } )
+                );
+
+                floor.position.set( 0, -50, 0 );
+                scene.add( floor );
+
+                // top light
+                var light = new THREE.DirectionalLight( 0xffffff, 1 );
+                light.position.set( 0, 20, 0 );
+                light.target.position.copy( scene.position );
+                scene.add( light );
+
+                // Side light
+                light = new THREE.DirectionalLight( 0xffffff, 1 );
+                light.position.set( 20, 30, 0 );
+                light.target.position.copy( scene.position );
+                scene.add( light );
+            }
+
+            function onRender() {
+                stats.update();
+
+                for( var i = 0; i < numBoxes; ++i ) {
+                    boxes[i].rotation.y += angleIncrement * 0.01;
+                    boxes[i].rotation.z = Math.sin( Date.now() * 0.005 ) * 0.5;
+                    boxes[i].translateZ( -1 );
+                }
+
+                camera.update();
+            }
+
+            function updateReadout() {
+                var target = camera.targets[ camera.currentTargetName ];
+                document.querySelector( '.name' ).textContent = 'Name: ' + target.name;
+                document.querySelector( '.position' ).textContent = 'Camera Position: ' + target.cameraPosition.toArray().join(', ');
+                document.querySelector( '.type' ).textContent = 'Fixed: ' + (target.fixed ? 'true' : 'false');
+                document.querySelector( '.stiffness' ).textContent = 'Stiffness: ' + target.stiffness.toFixed(2);
+                document.querySelector( '.rotation' ).textContent = 'Match Target Rotation: ' + target.matchRotation;
+            }
+
+
+            // Create a target camera instance.
+            var camera = new THREE.TargetCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+            // Setup the scene and renderer stuff ( see `defaultScene.js` )
+            initBasics();
+
+            // Make 10 boxes that we'll use as targets.
+            createBoxes();
+
+            camera.setTarget( 'box-0' );
+            updateReadout();
+            animate();
+
+            var currentTarget = 0;
+            document.addEventListener( 'keydown', function() {
+                if( ++currentTarget === numBoxes ) {
+                    currentTarget = 0;
+                }
+
+                camera.setTarget( 'box-' + currentTarget );
+
+                target = camera.targets[ camera.currentTargetName ];
+
+                for( var i = 0; i < numBoxes; ++i ) {
+                    boxes[ i ].material.wireframe = i === currentTarget;
+                    boxes[ i ].material.needsUpdate = true;
+                }
+
+                updateReadout();
+            }, false );
+        </script>
+    </body>
+</html>

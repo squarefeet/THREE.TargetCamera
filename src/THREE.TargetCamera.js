@@ -6,51 +6,18 @@
  *  (See the LICENSE file at root of this repository.)
  */
 
-THREE.TargetCamera = function( options ) {
+THREE.TargetCamera = function( fov, aspect, near, far ) {
     THREE.Camera.call( this );
 
     // The usual THREE.PerspectiveCamera settings.
-    this.fov = options.fov !== undefined ? options.fov : 50;
-    this.aspect = options.aspect !== undefined ? options.aspect : 1;
-    this.near = options.near !== undefined ? options.near : 0.1;
-    this.far = options.far !== undefined ? options.far : 2000;
+    this.fov = fov !== undefined ? fov : 50;
+    this.aspect = aspect !== undefined ? aspect : 1;
+    this.near = near !== undefined ? near : 0.1;
+    this.far = far !== undefined ? far : 2000;
 
-
-    // This camera's target object. Must be instance of THREE.Object3D 
-    // in one form or another.
-    this.target = options.target;
-
-    // Whether this camera will be in first-, or third-person mode.
-    this.mode = options.mode !== undefined ? options.mode : 'third';
-
-    // The stiffness of the movement of the camera. Must be
-    // a value between 0 and 1.
-    // Values closer to `0` will be smoother, values closer to `1` will be 
-    // stiffer.
-    // By default, the first-person mode will be stiff...
-    this.firstPersonStiffness = options.firstPersonStiffness !== undefined ? 
-        options.firstPersonStiffness : 1;
-
-    // ...And also by default, the third-person mode will be smoothed.
-    this.thirdPersonStiffness = options.thirdPersonStiffness !== undefined ? 
-        options.thirdPersonStiffness : 0.1;
-
-    // The stiffness of the transition between modes. Don't set it too low
-    // or you might never transition fully, depending on how fast the target
-    // is travelling.
-    this.modeTransitionStiffness = options.modeTransitionStiffness !== undefined ?
-        options.modeTransitionStiffness : 0.3;
-
-
-    // Position of player's "eyes". Only used when this.type === 'first'.
-    this.firstPersonPosition = options.firstPersonPosition !== undefined ? 
-        options.firstPersonPosition : new THREE.Vector3();
-
-
-    // Position of the chase camera. Only used when this.type === 'chase'.
-    this.thirdPersonPosition = options.thirdPersonPosition !== undefined ? 
-        options.thirdPersonPosition : new THREE.Vector3( 0, 50, 100 );
-
+    // 
+    this.targets = {};
+    this.currentTargetName = null;
 
     // A helper Object3D. Used to help position the camera based on the 
     // two position settings above.
@@ -58,11 +25,18 @@ THREE.TargetCamera = function( options ) {
 
     this._isTransitioning = false;
 
-    this.updateProjectionMatrix();
+    // Default target settings.
+    this._defaults = {
+        name: null,
+        targetObject: new THREE.Object3D(),
+        cameraPosition: new THREE.Vector3(0, 30, 50),
+        cameraRotation: undefined,
+        fixed: false,
+        stiffness: 0.4,
+        matchRotation: true
+    };
 
-    this.position.copy( 
-        this.mode === 'first' ? this.firstPersonPosition : this.thirdPersonPosition 
-    );
+    this.updateProjectionMatrix();
 };
 
 THREE.TargetCamera.prototype = Object.create( THREE.PerspectiveCamera.prototype );
@@ -83,48 +57,86 @@ THREE.TargetCamera.prototype._translateIdealObject = function( vec ) {
     }
 };
 
+THREE.TargetCamera.prototype._createNewTarget = function() {
+    var defaults = this._defaults;
 
-THREE.TargetCamera.prototype.setMode = function( mode ) {
-    if( mode === this.mode ) return;
-
-    this.mode = mode;
-    this._isTransitioning = true;
+    return {
+        name: defaults.name,
+        targetObject: defaults.targetObject,
+        cameraPosition: defaults.cameraPosition,
+        cameraRotation: defaults.cameraRotation,
+        fixed: defaults.fixed,
+        stiffness: defaults.stiffness,
+        matchRotation: defaults.matchRotation
+    };
 };
 
+THREE.TargetCamera.prototype._determineCameraRotation = function( rotation ) {
+    if( rotation instanceof THREE.Euler ) {
+        return new THREE.Quaternion().setFromEuler( rotation );
+    }
+    else if( rotation instanceof THREE.Quaternion ) {
+        return rotation;
+    }
+    else {
+        return undefined;
+    }
+};
 
+THREE.TargetCamera.prototype.addTarget = function( settings ) {
+    var target = this._createNewTarget();
+
+    if( typeof settings === 'object' ) {
+        for( var i in settings ) {
+            if( target.hasOwnProperty( i ) ) {
+                if( i === 'cameraRotation' ) {
+                    target[ i ] = this._determineCameraRotation( settings[ i ] );
+                }
+                else {
+                    target[ i ] = settings[ i ];
+                }
+            }
+        }
+    }
+
+    this.targets[ settings.name ] = target;
+};
+
+THREE.TargetCamera.prototype.setTarget = function( name ) {
+    if( this.targets.hasOwnProperty( name ) ) {
+        this.currentTargetName = name;
+    }
+    else {
+        console.warn( 'THREE.TargetCamera.setTarget: No target with name ' + name );
+    }
+};
 
 THREE.TargetCamera.prototype.update = function() {
-    var target = this.target,
-        mode = this.mode,
-        ideal = this._idealObject,
-        distance;
+    var target = this.targets[ this.currentTargetName ],
+        ideal = this._idealObject;
 
     if( !target ) return;
 
-    ideal.position.copy( this.target.position );
-    ideal.quaternion.copy( this.target.quaternion );
+    if( !target.fixed ) {
+        ideal.position.copy( target.targetObject.position );
+        ideal.quaternion.copy( target.targetObject.quaternion );
 
-    if( mode === 'first' ) {
-        this._translateIdealObject( this.firstPersonPosition );
-    }
-    else {
-        this._translateIdealObject( this.thirdPersonPosition );
-    }
+        if( target.cameraRotation !== undefined ) {
+            ideal.quaternion.multiply( target.cameraRotation );
+        }
 
-    if( this._isTransitioning ) {
-        this.position.lerp( ideal.position, this.modeTransitionStiffness );
-        this.quaternion.slerp( ideal.quaternion, this.modeTransitionStiffness );
+        this._translateIdealObject( target.cameraPosition );
+        this.position.lerp( ideal.position, target.stiffness );
 
-        if( this.position.distanceTo( ideal.position ) < 1 ) {
-            this._isTransitioning = false;
+        if( target.matchRotation ) {
+            this.quaternion.slerp( ideal.quaternion, target.stiffness );
+        }
+        else {
+            this.lookAt( target.targetObject.position );
         }
     }
-    else if( mode === 'first' ) {
-        this.position.lerp( ideal.position, this.firstPersonStiffness );
-        this.quaternion.slerp( ideal.quaternion, this.firstPersonStiffness );
-    }
-    else { 
-        this.position.lerp( ideal.position, this.thirdPersonStiffness );
-        this.quaternion.slerp( ideal.quaternion, this.thirdPersonStiffness );  
+    else {
+        this.position.copy( target.cameraPosition );
+        this.lookAt( target.targetObject.position );
     }
 };

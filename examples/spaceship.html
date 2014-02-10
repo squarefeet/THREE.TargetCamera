@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <link rel="stylesheet" type="text/css" href="css/main.css">
+    </head>
+    <body>
+        <p class="instructions">Press q to change camera target.</p>
+
+        <div class="targetDetails">
+            <p class="name"></p>
+            <p class="position"></p>
+            <p class="type"></p>
+            <p class="stiffness"></p>
+            <p class="rotation"></p>
+        </div>
+
+        <script type="text/javascript" src="js/vendor/THREE-r65.min.js"></script>
+        <script type="text/javascript" src="js/vendor/ColladaLoader.js"></script>
+        <script type="text/javascript" src="js/vendor/Stats.min.js"></script>
+        <script type="text/javascript" src="js/vendor/ShaderParticles.min.js"></script>
+        <script type="text/javascript" src="../src/THREE.TargetCamera.js"></script>
+        <script type="text/javascript" src="js/ObjectControls.js"></script>
+        <script type="text/javascript" src="js/defaultScene.js"></script>
+
+        <script type="text/javascript">
+            function createSpaceship() {
+                var loader = new THREE.ColladaLoader();
+                loader.load( 'collada/ship.dae', function( collada ) {
+                    dae = collada.scene;
+
+                    var urls = [
+                        'img/pos-x.png',
+                        'img/neg-x.png',
+                        'img/pos-y.png',
+                        'img/neg-y.png',
+                        'img/pos-z.png',
+                        'img/neg-z.png'
+                    ];
+                    var cubemap = THREE.ImageUtils.loadTextureCube(urls);
+                    cubemap.format = THREE.RGBFormat;
+
+                    var materials = dae.children[0].children[0].children[2].material.materials;
+
+                    for( var i = 0; i < materials.length; ++i ) {
+                        materials[i].envMap = cubemap;
+                        materials[i].needsUpdate = true;
+                    }
+
+                    var material = dae.children[0].children[0].children[0].children[0].material;
+
+                    material.envMap = cubemap;
+                    material.needsUpdate = true;
+
+                    dae.updateMatrix();
+                    scene.add( dae );
+
+                    camera.addTarget( {
+                        name: 'chase',
+                        targetObject: dae,
+                        cameraPosition: new THREE.Vector3( 0, 10, 20 ),
+                        stiffness: 0.3,
+                        fixed: false
+                    } );
+
+                    camera.addTarget( {
+                        name: 'cockpit',
+                        targetObject: dae,
+                        cameraPosition: new THREE.Vector3( 0, 0, -15 ),
+                        stiffness: 0.5,
+                        fixed: false
+                    } );
+
+                    camera.setTarget( 'chase' );
+                    scene.add( camera );
+
+                    controls = new ObjectControls( {
+                        mousePos: mousePos,
+                        targetObject: dae
+                    } );
+
+                    document.addEventListener( 'mousemove', onMouseMove, false );
+                    document.addEventListener( 'keydown', onKeyDown, false );
+                    document.addEventListener( 'keyup', onKeyUp, false );
+
+                    createParticles( dae );
+                    addLights();
+                    addSkybox( dae.position );
+                    updateReadout();
+                    animate();
+                } );
+            }
+
+            function createParticles( dae ) {
+                particleGroup = new SPE.Group({
+                    texture: THREE.ImageUtils.loadTexture('./img/smokeparticle.png'),
+                    maxAge: 0.3
+                });
+
+                particleEmitter = new SPE.Emitter({
+                    type: 'cube',
+                    position: dae.position,
+                    positionSpread: new THREE.Vector3(1, 1, 1),
+                    sizeStart: 2,
+                    sizeEnd: 1,
+
+                    colorStart: new THREE.Color( 'white' ),
+                    colorMiddle: new THREE.Color( 'blue' ),
+                    colorEnd: new THREE.Color( 'yellow' ),
+
+                    opacityStart: 0.05,
+                    opacityMiddle: 1,
+                    opacityEnd: 0,
+
+                    particleCount: 1000
+                });
+
+                var starfield = new SPE.Emitter({
+                    positionSpread: new THREE.Vector3( 10000, 10000, 10000 ),
+                    sizeStart: 10,
+
+                    colorStart: new THREE.Color( 'yellow' ),
+                    opacityStart: 1,
+
+                    isStatic: 1,
+
+                    particleCount: 25000
+                })
+
+                particleGroup.addEmitter( particleEmitter );
+                particleGroup.addEmitter( starfield );
+
+                scene.add( particleGroup.mesh );
+            }
+
+
+            function onRender() {
+                stats.update();
+                controls.update( 0.016 );
+                camera.update();
+                particleGroup.tick( 0.016 );
+            }
+
+            function updateReadout() {
+                var target = camera.targets[ camera.currentTargetName ];
+                document.querySelector( '.name' ).textContent = 'Name: ' + target.name;
+                document.querySelector( '.position' ).textContent = 'Camera Position: ' + target.cameraPosition.toArray().join(', ');
+                document.querySelector( '.type' ).textContent = 'Fixed: ' + (target.fixed ? 'true' : 'false');
+                document.querySelector( '.stiffness' ).textContent = 'Stiffness: ' + target.stiffness.toFixed(2);
+                document.querySelector( '.rotation' ).textContent = 'Match Target Rotation: ' + target.matchRotation;
+            }
+
+            function onMouseMove( e ) {
+                var x = e.pageX - (window.innerWidth/2),
+                    y = e.pageY - (window.innerHeight/2),
+                    threshold = 15;
+
+                if( (x > 0 && x < threshold) || (x < 0 && x > -threshold) ) {
+                    x = 0;
+                }
+
+                if( (y > 0 && y < threshold) || (y < 0 && y > -threshold) ) {
+                    y = 0;
+                }
+
+                mousePos.set( x, y );
+            }
+
+            function onKeyDown( e ) {
+                var key = e.keyCode;
+
+                if( key === 87 ) {
+                    controls.setForward( true );
+                }
+                else if( key === 65 ) {
+                    controls.setRollLeft( true );
+                }
+                else if( key === 68 ) {
+                    controls.setRollRight( true );
+                }
+                else if( key === 81 ) {
+                    if( camera.currentTargetName === 'chase' ) {
+                        camera.setTarget( 'cockpit' );
+                    }
+                    else {
+                        camera.setTarget( 'chase' );
+                    }
+                    updateReadout();
+                }
+            }
+
+            function onKeyUp( e ) {
+                var key = e.keyCode;
+
+                if( key === 87 ) {
+                    controls.setForward( false );
+                }
+                else if( key === 65 ) {
+                    controls.setRollLeft( false );
+                }
+                else if( key === 68 ) {
+                    controls.setRollRight( false );
+                }
+            }
+
+
+
+            // Create a target camera instance.
+            var camera = new THREE.TargetCamera( 75, window.innerWidth / window.innerHeight, 0.1, 2000 ),
+                mousePos = new THREE.Vector2(),
+                dae, controls, 
+                particleGroup, particleEmitter;
+
+            
+
+            // Setup the scene and renderer stuff ( see `defaultScene.js` )
+            initBasics();
+            createSpaceship();
+        </script>
+    </body>
+</html>
