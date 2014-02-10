@@ -1,7 +1,7 @@
 THREE.TargetCamera
 ==================
 A dual-function perspective target camera for use with THREE.js. It can be used as both a third-person chase camera, or a first-person camera, or a static camera that follows a target.
-Since this camera is a moving object, it needs to be updated on a per-frame basis. To to this, call the `update()` method from within your render loop.
+Since this camera is a moving object, it needs to be updated on a per-frame basis. To do this, call the `update()` method from within your render loop.
 
 
 Usage
