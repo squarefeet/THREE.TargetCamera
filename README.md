@@ -61,15 +61,15 @@ This project uses [Grunt](http://gruntjs.com/) to create the minimized build. If
 
 If you don't have grunt installed, first make sure you've got [NodeJS](http://nodejs.org/) and NPM installed, then install Grunt CLI. You might have to do this as root:
 
-```npm install -g grunt-cli```
+`npm install -g grunt-cli`
 
 Now you can install the local grunt package
 
-```cd [projectFolder]```
+`cd projectFolder`
 
-```npm install```
+`npm install`
 
-```grunt```
+`grunt`
 
 
 The output of grunt will sit in the `build` folder.
