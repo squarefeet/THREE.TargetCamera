@@ -1,13 +1,13 @@
 /**
- * THREE.TargetCamera 0.1.0 
+ * THREE.TargetCamera 0.1.0
  * (c) 2013 Luke Moody (http://www.github.com/squarefeet)
  *
- * THREE.TargetCamera may be freely distributed under the MIT license 
+ * THREE.TargetCamera may be freely distributed under the MIT license
  *  (See the LICENSE file at root of this repository.)
  */
 
 THREE.TargetCamera = function( fov, aspect, near, far ) {
-    THREE.Camera.call( this );
+    THREE.PerspectiveCamera.call( this );
 
     // The usual THREE.PerspectiveCamera settings.
     this.fov = fov !== undefined ? fov : 50;
@@ -15,11 +15,11 @@ THREE.TargetCamera = function( fov, aspect, near, far ) {
     this.near = near !== undefined ? near : 0.1;
     this.far = far !== undefined ? far : 2000;
 
-    // 
+    //
     this.targets = {};
     this.currentTargetName = null;
 
-    // A helper Object3D. Used to help position the camera based on the 
+    // A helper Object3D. Used to help position the camera based on the
     // two position settings above.
     this._idealObject = new THREE.Object3D();
 

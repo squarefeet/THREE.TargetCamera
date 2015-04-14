@@ -15,7 +15,7 @@
             <p class="rotation"></p>
         </div>
 
-        <script type="text/javascript" src="js/vendor/THREE-r65.min.js"></script>
+        <script type="text/javascript" src="js/vendor/THREE-r71.min.js"></script>
         <script type="text/javascript" src="js/vendor/Stats.min.js"></script>
         <script type="text/javascript" src="../src/THREE.TargetCamera.js"></script>
         <script type="text/javascript" src="js/defaultScene.js"></script>
@@ -29,12 +29,12 @@
             function createBoxes() {
                 for( var i = 0, box, settings; i < numBoxes; ++i ) {
                     box = new THREE.Mesh(
-                        new THREE.CubeGeometry( 10, 10, 10 ),
-                        new THREE.MeshPhongMaterial( { 
-                            color: new THREE.Color().setRGB( 
-                                0.5 + Math.random() * 0.5, 
-                                0.5 + Math.random() * 0.5, 
-                                0.5 + Math.random() * 0.5 
+                        new THREE.BoxGeometry( 10, 10, 10 ),
+                        new THREE.MeshPhongMaterial( {
+                            color: new THREE.Color().setRGB(
+                                0.5 + Math.random() * 0.5,
+                                0.5 + Math.random() * 0.5,
+                                0.5 + Math.random() * 0.5
                             )
                         } )
                     );
@@ -49,15 +49,15 @@
                     // Set it's initial rotation
                     box.rotation.set( 0, angleIncrement * i, 0 );
 
-                    
+
                     // Create different camera settings for each box.
                     if( i % 2 === 0 ) {
                         settings = {
                             name: 'box-' + i,
                             targetObject: box,
                             cameraPosition: new THREE.Vector3(
-                                100 - Math.random() * 200 | 0, 
-                                Math.random() * 200 | 0, 
+                                100 - Math.random() * 200 | 0,
+                                Math.random() * 200 | 0,
                                 50 + Math.random() * 50 | 0
                             ),
                             fixed: true,
@@ -83,8 +83,8 @@
                 }
 
                 var floor = new THREE.Mesh(
-                    new THREE.CubeGeometry( 2000, 2, 2000 ),
-                    new THREE.MeshPhongMaterial( { 
+                    new THREE.BoxGeometry( 2000, 2, 2000 ),
+                    new THREE.MeshPhongMaterial( {
                         color: 0x333333
                     } )
                 );

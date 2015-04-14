@@ -4,6 +4,11 @@ A dual-function perspective target camera for use with THREE.js. It can be used 
 Since this camera is a moving object, it needs to be updated on a per-frame basis. To do this, call the `update()` method from within your render loop.
 
 
+Changelog
+=========
+* **v1.0.0:** Fixed issue when using this little helper library with THREE.js r71. Also bumped to version 1.0.0, since the API is stable and not going to change.
+
+
 Usage
 =====
 You can use this camera as a drop-in replacement for a normal THREE.PerspectiveCamera;
@@ -18,7 +23,7 @@ After creating the camera, add a target for the camera to track:
     );
 
     // Add the box as a camera target with the name of "myTarget".
-    // The `cameraPosition` argument is an offset vector relative 
+    // The `cameraPosition` argument is an offset vector relative
     // to the target object.
     camera.addTarget({
         name: 'myTarget',
@@ -46,13 +51,13 @@ Options
 
 **`cameraPosition`**: *THREE.Vector3.* The camera position. When the camera isn't fixed, this property is relative to the target object. When fixed, it's just a normal position vector.
 
-**`cameraRotation`**: *THREE.Quaternion | THREE.Euler | undefined.* An optional parameter to describe the rotation of the camera. This rotation is added to the camera *before* any other movement. 
+**`cameraRotation`**: *THREE.Quaternion | THREE.Euler | undefined.* An optional parameter to describe the rotation of the camera. This rotation is added to the camera *before* any other movement.
 
 **`fixed`**: *Boolean.* Whether this camera is fixed, or whether it should "chase" the target.
 
 **`stiffness`**: *Number, > 0 and <= 1.* How much should the camera "stick" to the target's position and rotation. A lower number gives more fluid movement.
 
-**`matchRotation`**: *Boolean.* Whether to match the rotation of the target object when the camera is not fixed. 
+**`matchRotation`**: *Boolean.* Whether to match the rotation of the target object when the camera is not fixed.
 
 
 Building

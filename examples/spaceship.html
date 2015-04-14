@@ -15,7 +15,7 @@
             <p class="rotation"></p>
         </div>
 
-        <script type="text/javascript" src="js/vendor/THREE-r65.min.js"></script>
+        <script type="text/javascript" src="js/vendor/THREE-r71.min.js"></script>
         <script type="text/javascript" src="js/vendor/ColladaLoader.js"></script>
         <script type="text/javascript" src="js/vendor/Stats.min.js"></script>
         <script type="text/javascript" src="js/vendor/ShaderParticles.min.js"></script>
@@ -37,20 +37,6 @@
                         'img/pos-z.png',
                         'img/neg-z.png'
                     ];
-                    var cubemap = THREE.ImageUtils.loadTextureCube(urls);
-                    cubemap.format = THREE.RGBFormat;
-
-                    var materials = dae.children[0].children[0].children[2].material.materials;
-
-                    for( var i = 0; i < materials.length; ++i ) {
-                        materials[i].envMap = cubemap;
-                        materials[i].needsUpdate = true;
-                    }
-
-                    var material = dae.children[0].children[0].children[0].children[0].material;
-
-                    material.envMap = cubemap;
-                    material.needsUpdate = true;
 
                     dae.updateMatrix();
                     scene.add( dae );
@@ -208,10 +194,10 @@
             // Create a target camera instance.
             var camera = new THREE.TargetCamera( 75, window.innerWidth / window.innerHeight, 0.1, 2000 ),
                 mousePos = new THREE.Vector2(),
-                dae, controls, 
+                dae, controls,
                 particleGroup, particleEmitter;
 
-            
+
 
             // Setup the scene and renderer stuff ( see `defaultScene.js` )
             initBasics();
