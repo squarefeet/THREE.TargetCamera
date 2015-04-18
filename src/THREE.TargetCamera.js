@@ -15,8 +15,8 @@ THREE.TargetCamera = function( fov, aspect, near, far ) {
     this.near = near !== undefined ? near : 0.1;
     this.far = far !== undefined ? far : 2000;
 
-    //
     this.targets = {};
+    this.targetOrder = [];
     this.currentTargetName = null;
 
     // A helper Object3D. Used to help position the camera based on the
@@ -100,6 +100,7 @@ THREE.TargetCamera.prototype.addTarget = function( settings ) {
     }
 
     this.targets[ settings.name ] = target;
+    this.targetOrder.push( settings.name );
 };
 
 THREE.TargetCamera.prototype.setTarget = function( name ) {
@@ -108,6 +109,37 @@ THREE.TargetCamera.prototype.setTarget = function( name ) {
     }
     else {
         console.warn( 'THREE.TargetCamera.setTarget: No target with name ' + name );
+    }
+};
+
+THREE.TargetCamera.prototype.removeTarget = function( name, replacementName ) {
+    var targets = this.targets,
+        targetOrder = this.targetOrder;
+
+    // If there's only one target, then make sure it's not removed
+    // otherwise the world might end. And that is never fun.
+    if( targetOrder.length === 1 ) {
+        console.warn( 'THREE.TargetCamera: Will not remove only existing camera target.' );
+        return;
+    }
+
+    // If there's a target with the given name, make sure it's
+    // removed from both the targetOrder array and the
+    // main targets object.
+    if( targets.hasOwnProperty( name ) ) {
+        targetOrder.splice( targetOrder.indexOf( name ), 1 );
+        targets[ name ] = null;
+    }
+
+    // If a replacement target is given, and it exists in the target
+    // store, then jump to that target
+    if( replacementName && targets.hasOwnProperty( replacementName ) ) {
+        this.setTarget( replacementName );
+    }
+
+    // Otherwise, jump to the last target in the targetOrder array.
+    else {
+        this.setTarget( targetOrder[ targetOrder.length - 1 ] );
     }
 };
 

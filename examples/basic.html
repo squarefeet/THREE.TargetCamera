@@ -5,7 +5,7 @@
         <link rel="stylesheet" type="text/css" href="css/main.css">
     </head>
     <body>
-        <p class="instructions">Press any key to change camera target. Current target is rendered as wireframe.</p>
+        <p class="instructions">Press any key to change camera target. Current target is rendered as wireframe. Press backspace to remove a target.</p>
 
         <div class="targetDetails">
             <p class="name"></p>
@@ -13,6 +13,7 @@
             <p class="type"></p>
             <p class="stiffness"></p>
             <p class="rotation"></p>
+            <p class="numCameras"></p>
         </div>
 
         <script type="text/javascript" src="js/vendor/THREE-r71.min.js"></script>
@@ -118,12 +119,15 @@
             }
 
             function updateReadout() {
+                console.log( camera.currentTargetName );
+
                 var target = camera.targets[ camera.currentTargetName ];
                 document.querySelector( '.name' ).textContent = 'Name: ' + target.name;
                 document.querySelector( '.position' ).textContent = 'Camera Position: ' + target.cameraPosition.toArray().join(', ');
                 document.querySelector( '.type' ).textContent = 'Fixed: ' + (target.fixed ? 'true' : 'false');
                 document.querySelector( '.stiffness' ).textContent = 'Stiffness: ' + target.stiffness.toFixed(2);
                 document.querySelector( '.rotation' ).textContent = 'Match Target Rotation: ' + target.matchRotation;
+                document.querySelector( '.numCameras' ).textContent = 'Number of targets: ' + camera.targetOrder.length;
             }
 
 
@@ -141,21 +145,35 @@
             animate();
 
             var currentTarget = 0;
-            document.addEventListener( 'keydown', function() {
-                if( ++currentTarget === numBoxes ) {
+            document.addEventListener( 'keydown', function( e ) {
+                // Handle backspace
+                if( e.keyCode === 8 ) {
+                    camera.removeTarget( camera.currentTargetName );
+                    --currentTarget;
+
+                    currentTarget = Math.max( 0, currentTarget );
+
+                    console.log( camera.targetOrder );
+
+                    updateReadout();
+                    return;
+                }
+
+                if( ++currentTarget === camera.targetOrder.length ) {
                     currentTarget = 0;
                 }
 
-                camera.setTarget( 'box-' + currentTarget );
+                if( ~camera.targetOrder.indexOf( 'box-' + currentTarget ) ) {
+                    camera.setTarget( 'box-' + currentTarget );
+                    updateReadout();
+                }
 
-                target = camera.targets[ camera.currentTargetName ];
+                // target = camera.targets[ camera.currentTargetName ];
 
                 for( var i = 0; i < numBoxes; ++i ) {
                     boxes[ i ].material.wireframe = i === currentTarget;
                     boxes[ i ].material.needsUpdate = true;
                 }
-
-                updateReadout();
             }, false );
         </script>
     </body>

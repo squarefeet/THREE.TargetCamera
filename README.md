@@ -6,6 +6,8 @@ Since this camera is a moving object, it needs to be updated on a per-frame basi
 
 Changelog
 =========
+* **v1.1.0:** Added `THREE.TargetCamera#removeTarget( targetName, replacementTargetName )`.
+
 * **v1.0.0:** Fixed issue when using this little helper library with THREE.js r71. Also bumped to version 1.0.0, since the API is stable and not going to change.
 
 
